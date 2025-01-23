@@ -1,10 +1,10 @@
 /**
  * 
-* @file "RingBuffer.h"
+* @file "MemPool.h"
 * @author Madrick3
 * @brief A protocol agnostic data buffer for various project .
 * 
-* @COMPONENT: RingBuffer
+* @COMPONENT: MemPool
 * @VERSION: 01.00.00
 */
 /************************************************************
@@ -14,8 +14,8 @@
   01.00.00 |  Madrick3 |  Skeleton   |  Initial Creation
 ************************************************************/
 
-#ifndef RINGBUFFER_H
-#define RINGBUFFER_H
+#ifndef MEMPOOL_H
+#define MEMPOOL_H
 
 /************************************************************
   INCLUDES
@@ -26,36 +26,38 @@
 /************************************************************
   DEFINES
 ************************************************************/
+/* The below reserves 16 KB for the maximum MEMPOOL, requestor must request multiples of 256 bytes.*/
+#define MEMPOOL_MAX_NUM_BLOCKS 0x20
+#define MEMPOOL_BLOCK_SIZE 0x100
+#define MEMPOOL_SIZE ((uint64) (MEMPOOL_MAX_NUM_BLOCKS * MEMPOOL_BLOCK_SIZE))
+
+#define MOD_ID_MEMPOOL 0xF0
+
 /* A mempool is reserved for the RINGBUFFER, and is allocated through the linkerscript at compile time */
 #if defined( RP2040 )
-#define RINGBUFFER_MEMPOOL_STARTADDR __MEMPOOL_START
-#define RINGBUFFER_MEMPOOL_SIZE      __MEMPOOL_LENGTH
-#define RINGBUFFER_SIZE_TYPE         uint32
+#define MEMPOOL_SIZE_TYPE         uint32
+#define MEMPOOL_ADDR_TYPE         MEMPOOL_SIZE_TYPE
 #endif
 /* A mempool is allocated at runtime - for virtual test target */
 #if defined ( VIRTUAL_TARGET )
-#define RINGBUFFER_MEMPOOL_STARTADDR (uint64) mempool_start
-#define RINGBUFFER_MEMPOOL_SIZE      (uint64) 0x10
-#define RINGBUFFER_SIZE_TYPE         uint64
+#define MEMPOOL_SIZE_TYPE         uint64
+#define MEMPOOL_ADDR_TYPE         MEMPOOL_SIZE_TYPE
+#define MEMPOOL_STARTADDR ((uint64) mempool_start)
 extern uint8 * mempool_start;
 #endif
 
 /************************************************************
   ENUMS AND TYPEDEFS
 ************************************************************/
-typedef struct RingBuffer_tag
+typedef struct MemPool_tag
 {
-  uint8 * buffer;
-  RINGBUFFER_SIZE_TYPE elementSize; /* size of an element in the ringbuffer */
-  RINGBUFFER_SIZE_TYPE capacity; /* maximum number of items in the ringbuffer */
-  RINGBUFFER_SIZE_TYPE count; /* current number of items in the ringbuffer */
-  RINGBUFFER_SIZE_TYPE head; /* read pointer - "dirty" data that needs to be popped */
-  RINGBUFFER_SIZE_TYPE tail; /* write pointer - "clean" data that has been processed and can be overwritten */
-  /* A write or enqueue for adding data to the ringbuffer */
-  Std_ErrorCode (*write) (void * self, uint8 * dataBuffer, RINGBUFFER_SIZE_TYPE size);
-  /* A read ir dequeue for removing data from the ringbuffer */
-  Std_ErrorCode (*read) (void * self, uint8 * dataBuffer, RINGBUFFER_SIZE_TYPE size);
-} RingBuffer;
+  MEMPOOL_ADDR_TYPE poolStartAddr;
+  MEMPOOL_SIZE_TYPE poolSize;
+  MEMPOOL_SIZE_TYPE blockSize;
+  uint8 numTotalBlocks;
+  uint8 numFreeBlocks;
+  uint8 blocks[MEMPOOL_MAX_NUM_BLOCKS];
+} MemPool;
 
 
 
@@ -70,11 +72,8 @@ typedef struct RingBuffer_tag
 /************************************************************
   GLOBAL FUNCTIONS
 ************************************************************/
-/*
-  Create and Destroy are not parts of the RingBuffer object, as we are not relying on dynamic 
-  allocation. We COULD put create and destory in the ringbuffer object, but it doesn't make a whole 
-  lot of sense without dynamic allocation. If we split up the memory pool to multiple RingBuffers, 
-  then we will want to implement dynamic allocation within the MemoryPool
-*/
-extern Std_ErrorCode RingBuffer_Create( RingBuffer * self, RINGBUFFER_SIZE_TYPE elementSize, RINGBUFFER_SIZE_TYPE numBufferSlots);
-#endif /* RINGBUFFER_H */
+  /* helper function to check if the address given is */
+extern Std_ReturnType MemPool_CheckAddressAndRangeContained(MemPool * mp, MEMPOOL_ADDR_TYPE address, MEMPOOL_ADDR_TYPE length);
+extern Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SIZE_TYPE size);
+#endif /* MEMPOOL_H */
+

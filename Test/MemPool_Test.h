@@ -1,3 +1,25 @@
+/**
+ * 
+* @file "MemPool_Test.h"
+* @author Madrick3
+* @brief Basic Memory Pool implementation
+* 
+* @COMPONENT: MemPool
+* @VERSION: 01.00.00
+*/
+/************************************************************
+  Version History
+  -----------------------------------------------------------
+  Revision |  Author   |  Change ID  |  Description
+  01.00.00 |  Madrick3 |  Skeleton   |  Initial Creation
+************************************************************/
+
+#ifndef MEMPOOL_TEST_H
+#define MEMPOOL_TEST_H
+
+/************************************************************
+  INCLUDES
+************************************************************/
 #include "MemPool.h"
 
 /************************************************************
@@ -6,34 +28,36 @@
 
 
 /************************************************************
-  LOCAL FUNCTIONS
+  EXTERNAL FUNCTIONS
 ************************************************************/
-// extern void test_RingBuffer_Create_ReturnsOK(void);
-// extern void test_RingBuffer_Create_AllocatedSpaceIsEmpty(void);
-// extern void test_RingBuffer_Create_CorrectCapacityForElemSizeOne(void);
-// extern void test_RingBuffer_Create_CorrectCapacityForElemSizeFour(void);
-// extern void test_RingBuffer_Create_ZeroElemSizeShouldFail(void); 
-// extern void test_RingBuffer_Create_ThreeElemSizeShouldFail(void); 
-// extern void test_RingBuffer_Create_HugeElemSizeShouldFail(void); 
+/**
+ * Create Tests
+ */
+extern void test_MemPool_Create_ReturnsOK(void);
+extern void test_MemPool_Create_ReturnsNotOk_UnalignedStartAddress(void);
+extern void test_MemPool_Create_ReturnsNotOk_UnalignedSize(void);
+extern void test_MemPool_Create_ReturnsNotOk_ZeroSize(void);
+extern void test_MemPool_Create_Persists_AlignedSize(void);
+extern void test_MemPool_Create_Persists_AlignedAddress(void);
+extern void test_MemPool_Create_Persists_BlockCount(void);
+extern void test_MemPool_Create_FreeBlockCountIsCorrect(void);
+extern void test_MemPool_Create_BlockArrayIsAllFree(void);
 
-// /* write tests */
-// extern void test_RingBuffer_Write_ReturnsOk(void); 
-// extern void test_RingBuffer_Write_ReturnsNotOk_WrongSize(void); 
-// extern void test_RingBuffer_Write_ReturnsNotOk_NullPointerToData(void); 
-// extern void test_RingBuffer_Write_ReturnsNotOk_NotEnoughSpace_Full(void);
+/**
+ * CheckAddressAndRangeContained
+ */
+extern void test_MemPool_CheckRangeContained_OK(void);
+extern void test_MemPool_CheckRangeContained_OK_FullRange(void);
+extern void test_MemPool_CheckRangeContained_StartInLengthOut_NOTOK(void);
+extern void test_MemPool_CheckRangeContained_StartOutLengthIn_NOTOK(void);
+extern void test_MemPool_CheckRangeContained_StartOutLengthOut_NOTOK(void);
+extern void test_MemPool_CheckRangeContained_StartInLengthHuge_OVERFLOW_NOTOK(void);
 
-// /* read tests */
-// extern void test_RingBuffer_Read_ReturnsOk(void); 
-// extern void test_RingBuffer_Read_CorrectDataReturned(void); 
-// extern void test_RingBuffer_Read_ReturnsNotOk_SizeBiggerThanElement(void); 
-// // extern void test_RingBuffer_Read_ReturnsNotOk_SizeSmallerThanElement(void);
-// extern void test_RingBuffer_Read_ReturnsNotOk_NullPointerToData(void); 
-// extern void test_RingBuffer_Read_ReturnsNotOk_NoDataToRead(void);
-// /* TODO: Consider a "readPartial" so which would not move the head pointer */
+/* create setup helper func */
+extern MemPool testSetup_MemPool_Create(void);
 
-// /* Big test */
-// extern void test_RingBuffer_ReadAndWriteLotsOfData(void);
-// extern void test_RingBuffer_FillAndReadAndWriteAgain_OK(void);
-// extern void test_RingBuffer_FillAndReadAndWriteAgain_CorrectData(void);
+/**
+ * Allocate (Create Setup is needed)
+ */
 
-// extern void printRB(RingBuffer rb);
+#endif /* MEMPOOL_TEST_H */

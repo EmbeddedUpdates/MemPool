@@ -23,8 +23,8 @@
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "MemPool.h"
 #include "MemPool_Test.h"
+#include "MemPool.h"
 
 /*=======External Functions This Runner Calls=====*/
 extern void setUp(void);
@@ -43,40 +43,30 @@ void resetTest(void)
 /*=======MAIN=====*/
 int main(void)
 {
-  UnityBegin("test/ProtoBuf.c");
+  UnityBegin("test/MemPool.c");
 
-  uint8 * mempool = malloc(RINGBUFFER_MEMPOOL_SIZE);
+  uint8 * mempool = aligned_alloc(MEMPOOL_BLOCK_SIZE, MEMPOOL_SIZE);
   mempool_start = mempool;
-  printf("Address of mempool: %p\n", (void*)RINGBUFFER_MEMPOOL_STARTADDR);
-  printf("Length of mempool: %p\n", (void*)RINGBUFFER_MEMPOOL_SIZE);
+  printf("Address of mempool: %p\n", (void*)MEMPOOL_STARTADDR);
+  printf("Length of mempool: %p\n", (void*)(MEMPOOL_BLOCK_SIZE*MEMPOOL_MAX_NUM_BLOCKS));
 
   /* Tests for Create() */
-  // RUN_TEST(test_RingBuffer_Create_ReturnsOK, 54);
-  // RUN_TEST(test_RingBuffer_Create_AllocatedSpaceIsEmpty, 55);
-  // RUN_TEST(test_RingBuffer_Create_CorrectCapacityForElemSizeOne, 56);
-  // RUN_TEST(test_RingBuffer_Create_CorrectCapacityForElemSizeFour, 57);
-  // RUN_TEST(test_RingBuffer_Create_ZeroElemSizeShouldFail, 58);
-  // RUN_TEST(test_RingBuffer_Create_ThreeElemSizeShouldFail, 59);
-  // RUN_TEST(test_RingBuffer_Create_HugeElemSizeShouldFail, 60);
+  RUN_TEST(test_MemPool_Create_ReturnsOK, 54);
+  RUN_TEST(test_MemPool_Create_ReturnsNotOk_UnalignedStartAddress, 55);
+  RUN_TEST(test_MemPool_Create_ReturnsNotOk_UnalignedSize, 56);
+  RUN_TEST(test_MemPool_Create_ReturnsNotOk_ZeroSize, 57);
+  RUN_TEST(test_MemPool_Create_Persists_AlignedSize, 58);
+  RUN_TEST(test_MemPool_Create_Persists_AlignedAddress, 59);
+  RUN_TEST(test_MemPool_Create_Persists_BlockCount, 60);
+  RUN_TEST(test_MemPool_Create_FreeBlockCountIsCorrect, 61);
+  RUN_TEST(test_MemPool_Create_BlockArrayIsAllFree, 62);
 
-  // /* Tests for Write */
-  // RUN_TEST(test_RingBuffer_Write_ReturnsOk, 63);
-  // RUN_TEST(test_RingBuffer_Write_ReturnsNotOk_WrongSize, 64);
-  // RUN_TEST(test_RingBuffer_Write_ReturnsNotOk_NullPointerToData, 65);
-  // RUN_TEST(test_RingBuffer_Write_ReturnsNotOk_NotEnoughSpace_Full, 66);
-
-  // /* Tests for Read*/
-  // RUN_TEST(test_RingBuffer_Read_ReturnsOk, 69);
-  // RUN_TEST(test_RingBuffer_Read_CorrectDataReturned, 70);
-  // RUN_TEST(test_RingBuffer_Read_ReturnsNotOk_SizeBiggerThanElement, 71);
-  // // RUN_TEST(test_RingBuffer_Read_ReturnsNotOk_SizeSmallerThanElement, 72);
-  // RUN_TEST(test_RingBuffer_Read_ReturnsNotOk_NullPointerToData, 73);
-  // RUN_TEST(test_RingBuffer_Read_ReturnsNotOk_NoDataToRead, 74);
-
-  // /* Big Test */
-  // RUN_TEST(test_RingBuffer_ReadAndWriteLotsOfData, 77);
-  // RUN_TEST(test_RingBuffer_FillAndReadAndWriteAgain_OK, 78);
-  // RUN_TEST(test_RingBuffer_FillAndReadAndWriteAgain_CorrectData, 79);
+  RUN_TEST(test_MemPool_CheckRangeContained_OK, 64);
+  RUN_TEST(test_MemPool_CheckRangeContained_OK_FullRange, 65);
+  RUN_TEST(test_MemPool_CheckRangeContained_StartInLengthOut_NOTOK, 66);
+  RUN_TEST(test_MemPool_CheckRangeContained_StartOutLengthIn_NOTOK, 67);
+  RUN_TEST(test_MemPool_CheckRangeContained_StartOutLengthOut_NOTOK, 68);
+  RUN_TEST(test_MemPool_CheckRangeContained_StartInLengthHuge_OVERFLOW_NOTOK, 69);
 
   return (UnityEnd());
 }
