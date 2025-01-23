@@ -29,11 +29,33 @@ void tearDown(void)
 }
 
 /* HELPER FUNCTIONS */
-MemPool testSetup_MemPool_Create(void)
+MemPool testHelper_MemPool_Create(void)
 {
   MemPool mempool;
   (void)(MemPool_Create(&mempool, MEMPOOL_STARTADDR, MEMPOOL_SIZE));
   return mempool;
+}
+
+void testHelper_PrintCharArray(uint8 * arr, uint8 numElements)
+{
+  printf("array: \n");
+  uint8 i;
+  for(i = 0; i < numElements; i++)
+  {
+    printf(" %u |", arr[i]);
+  }
+  printf("\n");
+}
+
+void testHelper_PrintPointerArray(uint8** arr, uint8 numElements)
+{
+  printf("array: \n");
+  uint8 i;
+  for(i = 0; i < numElements; i++)
+  {
+    printf(" %p |", arr[i]);
+  }
+  printf("\n");
 }
 
 /* TESTS */
@@ -121,35 +143,35 @@ void test_MemPool_Create_BlockArrayIsAllFree(void)
 /* Utility Function Tests */
 void test_MemPool_CheckRangeContained_OK(void)
 {
-  MemPool mp = testSetup_MemPool_Create();
+  MemPool mp = testHelper_MemPool_Create();
   Std_ReturnType retVal = MemPool_CheckAddressAndRangeContained(&mp, MEMPOOL_STARTADDR, 32);
   TEST_ASSERT_EQUAL(E_OK, retVal);
 }
 
 void test_MemPool_CheckRangeContained_OK_FullRange(void)
 {
-  MemPool mp = testSetup_MemPool_Create();
+  MemPool mp = testHelper_MemPool_Create();
   Std_ReturnType retVal = MemPool_CheckAddressAndRangeContained(&mp, MEMPOOL_STARTADDR, MEMPOOL_SIZE);
   TEST_ASSERT_EQUAL(E_OK, retVal);
 }
 
 void test_MemPool_CheckRangeContained_StartInLengthOut_NOTOK(void)
 {
-  MemPool mp = testSetup_MemPool_Create();
+  MemPool mp = testHelper_MemPool_Create();
   Std_ReturnType retVal = MemPool_CheckAddressAndRangeContained(&mp, MEMPOOL_STARTADDR+4, MEMPOOL_SIZE);
   TEST_ASSERT_EQUAL(E_NOT_OK, retVal);
 }
 
 void test_MemPool_CheckRangeContained_StartOutLengthIn_NOTOK(void)
 {
-  MemPool mp = testSetup_MemPool_Create();
+  MemPool mp = testHelper_MemPool_Create();
   Std_ReturnType retVal = MemPool_CheckAddressAndRangeContained(&mp, MEMPOOL_STARTADDR-10, MEMPOOL_SIZE-2);
   TEST_ASSERT_EQUAL(E_NOT_OK, retVal);
 }
 
 void test_MemPool_CheckRangeContained_StartOutLengthOut_NOTOK(void)
 {
-  MemPool mp = testSetup_MemPool_Create();
+  MemPool mp = testHelper_MemPool_Create();
   Std_ReturnType retVal = MemPool_CheckAddressAndRangeContained(&mp, MEMPOOL_STARTADDR-10, MEMPOOL_SIZE+10);
   TEST_ASSERT_EQUAL(E_NOT_OK, retVal);
 }
@@ -160,8 +182,143 @@ void test_MemPool_CheckRangeContained_StartOutLengthOut_NOTOK(void)
 */
 void test_MemPool_CheckRangeContained_StartInLengthHuge_OVERFLOW_NOTOK(void)
 {
-  MemPool mp = testSetup_MemPool_Create();
+  MemPool mp = testHelper_MemPool_Create();
   Std_ReturnType retVal = MemPool_CheckAddressAndRangeContained(&mp, MEMPOOL_STARTADDR, UINT64_MAX);
   TEST_ASSERT_EQUAL(E_NOT_OK, retVal);
 }
+
+
+/* Alloc Tests */
+void test_MemPool_Alloc_ReturnsPointer(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, 32, 0x0A);
+  retVal = MemPool_CheckAddressAndRangeContained(&mp, (MEMPOOL_SIZE_TYPE)array, 32);
+  TEST_ASSERT_EQUAL(E_OK, retVal);
+}
+
+void test_MemPool_Alloc_SizeZero_ReturnsNULL(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, 0, 0x0A);
+  TEST_ASSERT_EQUAL(NULL, array);
+}
+
+void test_MemPool_Alloc_SizeTooBig_ReturnsNULL(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, (MEMPOOL_BLOCK_SIZE*MEMPOOL_MAX_NUM_BLOCKS+1), 0x0A);
+  TEST_ASSERT_EQUAL(NULL, array);
+}
+
+void test_MemPool_Alloc_AllocOneBlock(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, 32, 0x0A);
+  TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
+}
+
+void test_MemPool_Alloc_AllocTwoBlocks_TwoDifferentIdentifiers_TwoRequest(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, 32, 0x0A);
+  array = mp.alloc(&mp, 32, 0x0B);
+  TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
+  TEST_ASSERT_EQUAL(0x0B, mp.blocks[1]);
+}
+
+void test_MemPool_Alloc_AllocTwoBlocks_OneRequest(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, 512, 0x0A);
+  TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
+}
+
+void test_MemPool_Alloc_AllocThreeBlocks(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, 32, 0x0A);
+  array = mp.alloc(&mp, 32, 0x0B);
+  array = mp.alloc(&mp, 32, 0x0A);
+  TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
+  TEST_ASSERT_EQUAL(0x0B, mp.blocks[1]);
+  TEST_ASSERT_EQUAL(0x0A, mp.blocks[2]);
+}
+
+void test_MemPool_Alloc_AllocAllBlocks_ReturnsPointer(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, MEMPOOL_SIZE, 0x0A);
+  int i;
+  for(i = 0; i<mp.numTotalBlocks; i++)
+  {
+    TEST_ASSERT_EQUAL(0x0A, mp.blocks[i]);
+  }
+  retVal = MemPool_CheckAddressAndRangeContained(&mp, (MEMPOOL_ADDR_TYPE)array, MEMPOOL_SIZE);
+  TEST_ASSERT_EQUAL(E_OK, retVal);
+}
+
+void test_MemPool_Alloc_AllocTooManyBlocks_ReturnsNull(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  array = mp.alloc(&mp, MEMPOOL_SIZE, 0x0A);
+  array = mp.alloc(&mp, 32, 0x0B);
+  int i;
+  for(i = 0; i<mp.numTotalBlocks; i++)
+  {
+    TEST_ASSERT_EQUAL(0x0A, mp.blocks[i]);
+  }
+  retVal = MemPool_CheckAddressAndRangeContained(&mp, (MEMPOOL_ADDR_TYPE)array, MEMPOOL_SIZE);
+  TEST_ASSERT_EQUAL(E_NOT_OK, retVal);
+}
+
+void test_MemPool_Alloc_AllocAllBlocks_AllPointersInMemPool(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* array;
+  uint8 i;
+
+  for(i = 0; i<mp.numTotalBlocks; i++)
+  {
+    array = mp.alloc(&mp, 32, 0x0A);
+    TEST_ASSERT_EQUAL(0x0A, mp.blocks[i]);
+    retVal = MemPool_CheckAddressAndRangeContained(&mp, (MEMPOOL_ADDR_TYPE)array, 32);
+    TEST_ASSERT_EQUAL(E_OK, retVal);
+  }
+}
+
+void test_MemPool_Alloc_AllocAllBlocks_AllPointersDifferent(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8* arrayOfAddr[mp.numTotalBlocks];
+  int i;
+
+  for(i = 0; i < mp.numTotalBlocks; i++)
+  {
+    arrayOfAddr[i] = mp.alloc(&mp, 32, i);
+    retVal = MemPool_CheckAddressAndRangeContained(&mp, (MEMPOOL_ADDR_TYPE)arrayOfAddr[i], 32);
+  }
+  TEST_ASSERT_EQUAL(E_OK, retVal);
+}
+
 

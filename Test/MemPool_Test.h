@@ -59,5 +59,17 @@ extern MemPool testSetup_MemPool_Create(void);
 /**
  * Allocate (Create Setup is needed)
  */
+extern void test_MemPool_Alloc_ReturnsPointer(void);
+extern void test_MemPool_Alloc_SizeZero_ReturnsNULL(void);
+extern void test_MemPool_Alloc_SizeTooBig_ReturnsNULL(void);
+extern void test_MemPool_Alloc_AllocOneBlock(void);
+extern void test_MemPool_Alloc_AllocTwoBlocks_TwoDifferentIdentifiers_TwoRequest(void);
+extern void test_MemPool_Alloc_AllocTwoBlocks_OneRequest(void);
+extern void test_MemPool_Alloc_AllocThreeBlocks(void);
+extern void test_MemPool_Alloc_AllocAllBlocks_ReturnsPointer(void);
+extern void test_MemPool_Alloc_AllocTooManyBlocks_ReturnsNull(void);
+extern void test_MemPool_Alloc_AllocAllBlocks_AllPointersInMemPool(void);
+extern void test_MemPool_Alloc_AllocAllBlocks_AllPointersDifferent(void);
+
 
 #endif /* MEMPOOL_TEST_H */

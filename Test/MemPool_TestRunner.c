@@ -68,5 +68,17 @@ int main(void)
   RUN_TEST(test_MemPool_CheckRangeContained_StartOutLengthOut_NOTOK, 68);
   RUN_TEST(test_MemPool_CheckRangeContained_StartInLengthHuge_OVERFLOW_NOTOK, 69);
 
+  RUN_TEST(test_MemPool_Alloc_ReturnsPointer, 71);
+  RUN_TEST(test_MemPool_Alloc_SizeZero_ReturnsNULL, 72);
+  RUN_TEST(test_MemPool_Alloc_SizeTooBig_ReturnsNULL, 73);
+  RUN_TEST(test_MemPool_Alloc_AllocOneBlock, 74);
+  RUN_TEST(test_MemPool_Alloc_AllocTwoBlocks_TwoDifferentIdentifiers_TwoRequest, 75);
+  RUN_TEST(test_MemPool_Alloc_AllocTwoBlocks_OneRequest, 76);
+  RUN_TEST(test_MemPool_Alloc_AllocThreeBlocks, 77);
+  RUN_TEST(test_MemPool_Alloc_AllocAllBlocks_ReturnsPointer, 78);
+  RUN_TEST(test_MemPool_Alloc_AllocTooManyBlocks_ReturnsNull, 79);
+  RUN_TEST(test_MemPool_Alloc_AllocAllBlocks_AllPointersInMemPool, 80);
+  RUN_TEST(test_MemPool_Alloc_AllocAllBlocks_AllPointersDifferent, 81);
+
   return (UnityEnd());
 }

@@ -71,7 +71,7 @@ elements of a block would be:
 # MemPool test cases
 
 1. Mempool init
-    a. init works
+    a. ~~init works~~
         - returns ok
         - unaligned startaddress fails
         - unaligned size fails
@@ -83,22 +83,22 @@ elements of a block would be:
         - blockarray is populated totally free
         - memory is cleared?
     b. double init - wwhat to do here?
-    c. on init, free block count matches expected block count
-    d. on init, data is all freed
+    c. ~~on init, free block count matches expected block count~~
+    d. ~~on init, data is all freed~~
     e. on init, confirm that all blocks are in the linked list
 
-1** MemPool_CheckAddressAndRangeContained()
+2. ~~MemPool_CheckAddressAndRangeContained()~~
     a. Address in mempool + range in mempool -> OK
     b. Address in mempool + range out -> not_ok
     c. address out mempool + range in -> not_ok
     d. address out + range out -> not ok
 
-2. mempool init during runtime?
+3. mempool init during runtime?
     a. reinit the pool
     b. all blocks are free after
     c. no data in blocks
 
-3. Allocation tests
+4. Allocation tests
     a. Allocate a single block
     b. Allocate two blocks
     c. Verify the block allocated is in the pool
@@ -106,13 +106,13 @@ elements of a block would be:
     e. allocate all blocks + 1 and it should fail
     f. verify no blocks are duplicates
 
-4. Dealloc/free tests
+5. Dealloc/free tests
     a. free a block
     b. free the same block twice (should fail)
     c. free a block that doesnt exist (should fail)
     d. free a block that doesnt belong to the mempool
 
-5. edge cases:
+6. edge cases:
     a. allocate full pool, free one, allocate again
     b. allocate full pool, init pool, allocate full pool
     c. allocate full pool, init pool, free (should fail)

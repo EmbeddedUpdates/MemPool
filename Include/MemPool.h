@@ -57,6 +57,9 @@ typedef struct MemPool_tag
   uint8 numTotalBlocks;
   uint8 numFreeBlocks;
   uint8 blocks[MEMPOOL_MAX_NUM_BLOCKS];
+
+  /* Allocate some data from the Mempool, returns the address of that region */
+  uint8* (*alloc) (void * self, MEMPOOL_SIZE_TYPE size, uint8 moduleID);
 } MemPool;
 
 
