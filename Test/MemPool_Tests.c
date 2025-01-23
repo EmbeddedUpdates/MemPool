@@ -201,7 +201,6 @@ void test_MemPool_Alloc_ReturnsPointer(void)
 
 void test_MemPool_Alloc_SizeZero_ReturnsNULL(void)
 {
-  Std_ReturnType retVal = E_NOT_OK;
   MemPool mp = testHelper_MemPool_Create();
   uint8* array;
   array = mp.alloc(&mp, 0, 0x0A);
@@ -210,7 +209,6 @@ void test_MemPool_Alloc_SizeZero_ReturnsNULL(void)
 
 void test_MemPool_Alloc_SizeTooBig_ReturnsNULL(void)
 {
-  Std_ReturnType retVal = E_NOT_OK;
   MemPool mp = testHelper_MemPool_Create();
   uint8* array;
   array = mp.alloc(&mp, (MEMPOOL_BLOCK_SIZE*MEMPOOL_MAX_NUM_BLOCKS+1), 0x0A);
@@ -219,41 +217,41 @@ void test_MemPool_Alloc_SizeTooBig_ReturnsNULL(void)
 
 void test_MemPool_Alloc_AllocOneBlock(void)
 {
-  Std_ReturnType retVal = E_NOT_OK;
   MemPool mp = testHelper_MemPool_Create();
   uint8* array;
   array = mp.alloc(&mp, 32, 0x0A);
+  (void) array;
   TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
 }
 
 void test_MemPool_Alloc_AllocTwoBlocks_TwoDifferentIdentifiers_TwoRequest(void)
 {
-  Std_ReturnType retVal = E_NOT_OK;
   MemPool mp = testHelper_MemPool_Create();
   uint8* array;
   array = mp.alloc(&mp, 32, 0x0A);
   array = mp.alloc(&mp, 32, 0x0B);
+  (void) array;
   TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
   TEST_ASSERT_EQUAL(0x0B, mp.blocks[1]);
 }
 
 void test_MemPool_Alloc_AllocTwoBlocks_OneRequest(void)
 {
-  Std_ReturnType retVal = E_NOT_OK;
   MemPool mp = testHelper_MemPool_Create();
   uint8* array;
   array = mp.alloc(&mp, 512, 0x0A);
+  (void) array;
   TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
 }
 
 void test_MemPool_Alloc_AllocThreeBlocks(void)
 {
-  Std_ReturnType retVal = E_NOT_OK;
   MemPool mp = testHelper_MemPool_Create();
   uint8* array;
   array = mp.alloc(&mp, 32, 0x0A);
   array = mp.alloc(&mp, 32, 0x0B);
   array = mp.alloc(&mp, 32, 0x0A);
+  (void) array;
   TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
   TEST_ASSERT_EQUAL(0x0B, mp.blocks[1]);
   TEST_ASSERT_EQUAL(0x0A, mp.blocks[2]);

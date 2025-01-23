@@ -54,7 +54,9 @@ extern void test_MemPool_CheckRangeContained_StartOutLengthOut_NOTOK(void);
 extern void test_MemPool_CheckRangeContained_StartInLengthHuge_OVERFLOW_NOTOK(void);
 
 /* create setup helper func */
-extern MemPool testSetup_MemPool_Create(void);
+extern MemPool testHelper_MemPool_Create(void);
+extern void testHelper_PrintCharArray(uint8 * arr, uint8 numElements);
+extern void testHelper_PrintPointerArray(uint8** arr, uint8 numElements);
 
 /**
  * Allocate (Create Setup is needed)
@@ -70,6 +72,11 @@ extern void test_MemPool_Alloc_AllocAllBlocks_ReturnsPointer(void);
 extern void test_MemPool_Alloc_AllocTooManyBlocks_ReturnsNull(void);
 extern void test_MemPool_Alloc_AllocAllBlocks_AllPointersInMemPool(void);
 extern void test_MemPool_Alloc_AllocAllBlocks_AllPointersDifferent(void);
+
+/**
+ * Allocate (Create Setup is needed)
+ */
+extern void test_MemPool_Alloc_ReturnsPointer(void);
 
 
 #endif /* MEMPOOL_TEST_H */
