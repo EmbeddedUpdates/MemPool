@@ -56,10 +56,11 @@ typedef struct MemPool_tag
   MEMPOOL_SIZE_TYPE blockSize;
   uint8 numTotalBlocks;
   uint8 numFreeBlocks;
-  uint8 blocks[MEMPOOL_MAX_NUM_BLOCKS];
+  uint16 blocks[MEMPOOL_MAX_NUM_BLOCKS];
 
   /* Allocate some data from the Mempool, returns the address of that region */
-  uint8* (*alloc) (void * self, MEMPOOL_SIZE_TYPE size, uint8 moduleID);
+  uint8* (*alloc) (void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID);
+  Std_ReturnType (*free) (void * self, MEMPOOL_ADDR_TYPE addr, uint16 moduleID);
 } MemPool;
 
 

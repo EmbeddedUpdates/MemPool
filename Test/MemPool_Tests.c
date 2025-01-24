@@ -36,13 +36,13 @@ MemPool testHelper_MemPool_Create(void)
   return mempool;
 }
 
-void testHelper_PrintCharArray(uint8 * arr, uint8 numElements)
+void testHelper_PrintShortArray(uint16 * arr, uint8 numElements)
 {
   printf("array: \n");
   uint8 i;
   for(i = 0; i < numElements; i++)
   {
-    printf(" %u |", arr[i]);
+    printf(" 0x%04X |", arr[i]);
   }
   printf("\n");
 }
@@ -135,9 +135,9 @@ void test_MemPool_Create_BlockArrayIsAllFree(void)
   MemPool mempool;
   retVal = MemPool_Create(&mempool, MEMPOOL_STARTADDR, 0x2000);
   /* GNU Extension syntax for initializing an array quickly */
-  uint8 freeArray[32] = {[0 ... 31] = MOD_ID_MEMPOOL};
+  uint16 freeArray[32] = {[0 ... 31] = MOD_ID_MEMPOOL};
   (void)retVal;
-  TEST_ASSERT_EQUAL_CHAR_ARRAY(&freeArray[0], &(mempool.blocks[0]), 32);
+  TEST_ASSERT_EQUAL_INT16_ARRAY(&freeArray[0], &(mempool.blocks[0]), 32);
 }
 
 /* Utility Function Tests */
@@ -221,7 +221,7 @@ void test_MemPool_Alloc_AllocOneBlock(void)
   uint8* array;
   array = mp.alloc(&mp, 32, 0x0A);
   (void) array;
-  TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
+  TEST_ASSERT_EQUAL_INT16(0x0A, mp.blocks[0]);
 }
 
 void test_MemPool_Alloc_AllocTwoBlocks_TwoDifferentIdentifiers_TwoRequest(void)
@@ -231,8 +231,8 @@ void test_MemPool_Alloc_AllocTwoBlocks_TwoDifferentIdentifiers_TwoRequest(void)
   array = mp.alloc(&mp, 32, 0x0A);
   array = mp.alloc(&mp, 32, 0x0B);
   (void) array;
-  TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
-  TEST_ASSERT_EQUAL(0x0B, mp.blocks[1]);
+  TEST_ASSERT_EQUAL_INT16(0x0A, mp.blocks[0]);
+  TEST_ASSERT_EQUAL_INT16(0x0B, mp.blocks[1]);
 }
 
 void test_MemPool_Alloc_AllocTwoBlocks_OneRequest(void)
@@ -241,7 +241,7 @@ void test_MemPool_Alloc_AllocTwoBlocks_OneRequest(void)
   uint8* array;
   array = mp.alloc(&mp, 512, 0x0A);
   (void) array;
-  TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
+  TEST_ASSERT_EQUAL_INT16(0x010A, mp.blocks[0]);
 }
 
 void test_MemPool_Alloc_AllocThreeBlocks(void)
@@ -252,9 +252,9 @@ void test_MemPool_Alloc_AllocThreeBlocks(void)
   array = mp.alloc(&mp, 32, 0x0B);
   array = mp.alloc(&mp, 32, 0x0A);
   (void) array;
-  TEST_ASSERT_EQUAL(0x0A, mp.blocks[0]);
-  TEST_ASSERT_EQUAL(0x0B, mp.blocks[1]);
-  TEST_ASSERT_EQUAL(0x0A, mp.blocks[2]);
+  TEST_ASSERT_EQUAL_INT16(0x0A, mp.blocks[0]);
+  TEST_ASSERT_EQUAL_INT16(0x0B, mp.blocks[1]);
+  TEST_ASSERT_EQUAL_INT16(0x0A, mp.blocks[2]);
 }
 
 void test_MemPool_Alloc_AllocAllBlocks_ReturnsPointer(void)
@@ -264,9 +264,10 @@ void test_MemPool_Alloc_AllocAllBlocks_ReturnsPointer(void)
   uint8* array;
   array = mp.alloc(&mp, MEMPOOL_SIZE, 0x0A);
   int i;
-  for(i = 0; i<mp.numTotalBlocks; i++)
+  TEST_ASSERT_EQUAL_INT16(0x1F0A, mp.blocks[0]);
+  for(i = 1; i<mp.numTotalBlocks; i++)
   {
-    TEST_ASSERT_EQUAL(0x0A, mp.blocks[i]);
+    TEST_ASSERT_EQUAL_INT16(0x000A, mp.blocks[i]);
   }
   retVal = MemPool_CheckAddressAndRangeContained(&mp, (MEMPOOL_ADDR_TYPE)array, MEMPOOL_SIZE);
   TEST_ASSERT_EQUAL(E_OK, retVal);
@@ -280,9 +281,10 @@ void test_MemPool_Alloc_AllocTooManyBlocks_ReturnsNull(void)
   array = mp.alloc(&mp, MEMPOOL_SIZE, 0x0A);
   array = mp.alloc(&mp, 32, 0x0B);
   int i;
-  for(i = 0; i<mp.numTotalBlocks; i++)
+  TEST_ASSERT_EQUAL_INT16(0x1F0A, mp.blocks[0]);
+  for(i = 1; i<mp.numTotalBlocks; i++)
   {
-    TEST_ASSERT_EQUAL(0x0A, mp.blocks[i]);
+    TEST_ASSERT_EQUAL_INT16(0x000A, mp.blocks[i]);
   }
   retVal = MemPool_CheckAddressAndRangeContained(&mp, (MEMPOOL_ADDR_TYPE)array, MEMPOOL_SIZE);
   TEST_ASSERT_EQUAL(E_NOT_OK, retVal);
@@ -298,7 +300,7 @@ void test_MemPool_Alloc_AllocAllBlocks_AllPointersInMemPool(void)
   for(i = 0; i<mp.numTotalBlocks; i++)
   {
     array = mp.alloc(&mp, 32, 0x0A);
-    TEST_ASSERT_EQUAL(0x0A, mp.blocks[i]);
+    TEST_ASSERT_EQUAL_INT16(0x0A, mp.blocks[i]);
     retVal = MemPool_CheckAddressAndRangeContained(&mp, (MEMPOOL_ADDR_TYPE)array, 32);
     TEST_ASSERT_EQUAL(E_OK, retVal);
   }
@@ -319,4 +321,124 @@ void test_MemPool_Alloc_AllocAllBlocks_AllPointersDifferent(void)
   TEST_ASSERT_EQUAL(E_OK, retVal);
 }
 
+void test_MemPool_Free_ReturnsOK(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8 * addr = mp.alloc(&mp, 32, 0x0A);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)addr, 0x0A);
+  TEST_ASSERT_EQUAL(E_OK, retVal);
+}
+
+void test_MemPool_Free_NumBlocksEqualsNumFreeBlocks(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8 * addr0 = mp.alloc(&mp, 32, 0x0A);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)addr0, 0x0A);
+  (void) retVal;
+  TEST_ASSERT_EQUAL(mp.numTotalBlocks, mp.numFreeBlocks);
+}
+
+void test_MemPool_Free_1BlockFreeAfterAllUsedAnd1Freed(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8 * addr0 = mp.alloc(&mp, 32, 0x0A);
+  uint8 * addr1 = mp.alloc(&mp, 0x1F00, 0x0B);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)addr0, 0x0A);
+  (void) retVal;
+  (void) addr1;
+  TEST_ASSERT_EQUAL(1, mp.numFreeBlocks);
+}
+
+void test_MemPool_Free_PointerNotInMemPool_ReurnsNOTOK(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8 * addr = mp.alloc(&mp, 32, 0x0A);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr-0x200), 0x0A);
+  TEST_ASSERT_EQUAL(E_NOT_OK, retVal);
+}
+
+void test_MemPool_Free_PointerInMempoolButNotCorrectModule_ReturnsNOTOK(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8 * addr = mp.alloc(&mp, 32, 0x0A);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr), 0x0B);
+  TEST_ASSERT_EQUAL(E_NOT_OK, retVal);
+}
+
+void test_MemPool_Free_FreesCorrectSpace_AllocOneBlockAndFreeOneBlock_IsFree(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8 * addr = mp.alloc(&mp, 32, 0x0A);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr), 0x0A);
+  (void) retVal;
+  TEST_ASSERT_EQUAL_INT16(MOD_ID_MEMPOOL, mp.blocks[0]);
+}
+
+void test_MemPool_Free_FreesCorrectSpace_AllocTwoBlocksAndFreeOneBlock_IsFreeAndAlloc(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8 * addr0 = mp.alloc(&mp, 32, 0x0A);
+  uint8 * addr1 = mp.alloc(&mp, 32, 0x0B);
+  uint8 * addr2 = mp.alloc(&mp, 32, 0x0A);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr2), 0x0A);
+  (void) addr0;
+  (void) addr1;
+  (void) retVal;
+  TEST_ASSERT_EQUAL_INT16(0x0A, mp.blocks[0]);
+  TEST_ASSERT_EQUAL_INT16(0x0B, mp.blocks[1]);
+  TEST_ASSERT_EQUAL_INT16(MOD_ID_MEMPOOL, mp.blocks[2]);
+}
+
+void test_MemPool_Free_FreesCorrectSpace_AllocAllAsOneAndFreeAll_AllIsFree(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  uint8 * addr0 = mp.alloc(&mp, MEMPOOL_SIZE, 0x0A);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr0), 0x0A);
+  uint8 i = 0;
+  (void) retVal;
+  for(i = 0; i < mp.numTotalBlocks ; i++)
+  {
+    TEST_ASSERT_EQUAL_INT16(MOD_ID_MEMPOOL, mp.blocks[i]);
+  }
+  TEST_ASSERT_EQUAL(mp.numTotalBlocks, mp.numFreeBlocks);
+}
+
+void test_MemPool_Aux_CanaryTest(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  *(uint32*)(mp.poolStartAddr+mp.poolSize) = 0xFACEBEEF;
+  uint8 * addr0 = mp.alloc(&mp, MEMPOOL_SIZE, 0x0A);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr0), 0x0A);
+  TEST_ASSERT_EQUAL_INT32(0xFACEBEEF, *(uint32*)(mp.poolStartAddr+mp.poolSize));
+}
+
+void test_MemPool_Aux_AllocAllFreeHalfAllocOne(void)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  MemPool mp = testHelper_MemPool_Create();
+  *(uint32*)(mp.poolStartAddr+mp.poolSize) = 0xFACEBEEF;
+  uint8 * addr0 = mp.alloc(&mp, MEMPOOL_SIZE/2, 0x0A);
+  uint8 * addr1 = mp.alloc(&mp, MEMPOOL_SIZE/2, 0x0B);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr0), 0x0A);
+  uint8 * addr2 = mp.alloc(&mp, 32, 0x0C);
+  uint8 * addr3 = mp.alloc(&mp, 0x300, 0x0C);
+  uint8 * addr4 = mp.alloc(&mp, 0x300, 0x0C);
+  uint8 * addr5 = mp.alloc(&mp, 0x300, 0x0C);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr2), 0x0C);
+  uint8 * addr6 = mp.alloc(&mp, 0x300, 0x0C);
+  uint8 * addr7 = mp.alloc(&mp, 0x300, 0x0C);
+  uint8 * addr8 = mp.alloc(&mp, 0x20, 0x0D);
+  retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr3), 0x0C);
+  testHelper_PrintShortArray(mp.blocks, 32);
+  TEST_ASSERT_EQUAL_INT16(0x000D, mp.blocks[0]);
+}
 

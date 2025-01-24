@@ -55,7 +55,7 @@ extern void test_MemPool_CheckRangeContained_StartInLengthHuge_OVERFLOW_NOTOK(vo
 
 /* create setup helper func */
 extern MemPool testHelper_MemPool_Create(void);
-extern void testHelper_PrintCharArray(uint8 * arr, uint8 numElements);
+extern void testHelper_PrintShortArray(uint16 * arr, uint8 numElements);
 extern void testHelper_PrintPointerArray(uint8** arr, uint8 numElements);
 
 /**
@@ -74,9 +74,21 @@ extern void test_MemPool_Alloc_AllocAllBlocks_AllPointersInMemPool(void);
 extern void test_MemPool_Alloc_AllocAllBlocks_AllPointersDifferent(void);
 
 /**
- * Allocate (Create Setup is needed)
+ * Free (Create Setup is needed)
  */
-extern void test_MemPool_Alloc_ReturnsPointer(void);
+extern void test_MemPool_Free_ReturnsOK(void);
+extern void test_MemPool_Free_PointerNotInMemPool_ReurnsNOTOK(void);
+extern void test_MemPool_Free_PointerInMempoolButNotCorrectModule_ReturnsNOTOK(void);
+extern void test_MemPool_Free_FreesCorrectSpace_AllocOneBlockAndFreeOneBlock_IsFree(void);
+extern void test_MemPool_Free_FreesCorrectSpace_AllocTwoBlocksAndFreeOneBlock_IsFreeAndAlloc(void);
+extern void test_MemPool_Free_FreesCorrectSpace_AllocAllAsOneAndFreeAll_AllIsFree(void);
+extern void test_MemPool_Free_NumBlocksEqualsNumFreeBlocks(void);
+extern void test_MemPool_Free_1BlockFreeAfterAllUsedAnd1Freed(void);
 
+/**
+ * Auxiliary tests, that don't belong in these other spaces.
+ */
+extern void test_MemPool_Aux_CanaryTest(void);
+extern void test_MemPool_Aux_AllocAllFreeHalfAllocOne(void);
 
 #endif /* MEMPOOL_TEST_H */

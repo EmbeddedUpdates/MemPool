@@ -98,7 +98,7 @@ elements of a block would be:
     b. all blocks are free after
     c. no data in blocks
 
-4. Allocation tests
+4. ~~Allocation tests~~
     a. Allocate a single block
     b. Allocate two blocks
     c. Verify the block allocated is in the pool
@@ -106,13 +106,13 @@ elements of a block would be:
     e. allocate all blocks + 1 and it should fail
     f. verify no blocks are duplicates
 
-5. Dealloc/free tests
+5. ~~Dealloc/free tests~~
     a. free a block
     b. free the same block twice (should fail)
     c. free a block that doesnt exist (should fail)
     d. free a block that doesnt belong to the mempool
 
-6. edge cases:
+6. ~~edge cases:~~
     a. allocate full pool, free one, allocate again
     b. allocate full pool, init pool, allocate full pool
     c. allocate full pool, init pool, free (should fail)

@@ -80,5 +80,18 @@ int main(void)
   RUN_TEST(test_MemPool_Alloc_AllocAllBlocks_AllPointersInMemPool, 80);
   RUN_TEST(test_MemPool_Alloc_AllocAllBlocks_AllPointersDifferent, 81);
 
+  RUN_TEST(test_MemPool_Free_ReturnsOK, 81);
+  RUN_TEST(test_MemPool_Free_PointerNotInMemPool_ReurnsNOTOK, 81);
+  RUN_TEST(test_MemPool_Free_PointerInMempoolButNotCorrectModule_ReturnsNOTOK, 81);
+  RUN_TEST(test_MemPool_Free_FreesCorrectSpace_AllocOneBlockAndFreeOneBlock_IsFree, 81);
+  RUN_TEST(test_MemPool_Free_FreesCorrectSpace_AllocTwoBlocksAndFreeOneBlock_IsFreeAndAlloc, 81);
+  RUN_TEST(test_MemPool_Free_FreesCorrectSpace_AllocAllAsOneAndFreeAll_AllIsFree, 81);
+  RUN_TEST(test_MemPool_Free_NumBlocksEqualsNumFreeBlocks, 89);
+  RUN_TEST(test_MemPool_Free_1BlockFreeAfterAllUsedAnd1Freed, 90);
+
+  /* Auxiliary tests */
+  RUN_TEST(test_MemPool_Aux_CanaryTest, 93);
+  RUN_TEST(test_MemPool_Aux_AllocAllFreeHalfAllocOne, 94);
+
   return (UnityEnd());
 }

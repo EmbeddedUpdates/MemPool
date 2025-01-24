@@ -50,11 +50,13 @@
  * @return pointer to the first byte of the me mory space requested, if allocation fails->NULL
  */
 /* Reserve and allocate a contiguous memory space to the module */
-static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint8 moduleID)
+static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID)
 {
   uint8* addr;
   uint8 numBlocksToReserve = 0;
   uint8 i;
+  uint8 contiguousCount = 0;
+  uint8 startOfContiguousBlocks = 0;
 
   /* 
     immediate failure cases:
@@ -83,18 +85,77 @@ static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint8 moduleID)
     }
     else
     {
-      /* address will be assumed to be the next available block <----- this must change later */ /* DEBT_01 */
-      addr = (uint8*)(SELF->poolStartAddr + (SELF->numTotalBlocks-SELF->numFreeBlocks));
-      for(i = 0; i < numBlocksToReserve; i++)
+      /* iterate through the entire array, searching for first contiguous group of that is large enough */
+      for(i = 0; i < SELF->numTotalBlocks; i++)
       {
-        SELF->blocks[SELF->numTotalBlocks - SELF->numFreeBlocks + i] = moduleID;
+        /* only free blocks count */
+        if(SELF->blocks[i] == 0x00F0)
+        {
+          contiguousCount++;
+        }
+        else
+        {
+          contiguousCount = 0;
+        }
+        if(contiguousCount == numBlocksToReserve)
+        {
+          startOfContiguousBlocks = i - contiguousCount + 1;
+          /* address will be assumed to be the next available block <----- this must change later */ /* DEBT_01 */
+          addr = (uint8*)(SELF->poolStartAddr + (startOfContiguousBlocks*SELF->blockSize));
+          SELF->blocks[startOfContiguousBlocks] = (((numBlocksToReserve-1) << 8) | moduleID);
+          for(i = 1; i < numBlocksToReserve; i++)
+          {
+            SELF->blocks[startOfContiguousBlocks + i] = (((0x00) << 8) | moduleID);
+          }
+          SELF->numFreeBlocks = SELF->numFreeBlocks - numBlocksToReserve;
+          break;
+        }
       }
-      SELF->numFreeBlocks = SELF->numFreeBlocks - numBlocksToReserve;
     }
   }
   return addr;
 }
 
+/**
+ * MemPool->Free()
+ * Given an address to an already allocated memory block, and a matching requestor ID, frees the block.
+ * @param self: Mempool object that is being used
+ * @param addr: address for the start of the region that must be freed
+ *                NB: should match the addr that was given to the caller in alloc
+ * @param moduleID: identifier for the module that had been allocated this memory space
+ *                NB: If this does not match the original request, free will fail
+ * 
+ * @return pointer to the first byte of the me mory space requested, if allocation fails->NULL
+ */
+/* Reserve and allocate a contiguous memory space to the module */
+static Std_ReturnType MemPool_Free(void * self, MEMPOOL_ADDR_TYPE addr, uint16 moduleID)
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  uint8 blockIdx = 0;
+  uint8 numBlocksToClear = 0;
+  uint8 i;
+
+  /* We need to identify if the address is reasonable, we can use the helper function for that */  
+  if(E_OK == MemPool_CheckAddressAndRangeContained(self, addr, 1))
+  {
+    /* Now we just need to confirm that this is the expected caller */
+    blockIdx = (addr-(SELF->poolStartAddr))/SELF->blockSize;
+    if((SELF->blocks[blockIdx] & 0xFF) == moduleID)
+    {
+      numBlocksToClear = ((SELF->blocks[blockIdx] & 0xFF00) >> 8) + 1;
+      for(i = 0; i < numBlocksToClear; i++)
+      {
+        SELF->blocks[blockIdx+i] = ((0x00 << 2) | MOD_ID_MEMPOOL);
+        SELF->numFreeBlocks++;
+      }
+      retVal = E_OK;
+    }
+  }
+
+  (void) moduleID;
+  
+  return retVal;
+}
 
 /************************************************************
   GLOBAL FUNCTIONS
@@ -119,9 +180,10 @@ Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SI
 
     for(i = 0; i < SELF->numTotalBlocks; i++)
     {
-      SELF->blocks[i] = MOD_ID_MEMPOOL;
+      SELF->blocks[i] = ((0x00 << 2) | MOD_ID_MEMPOOL);
     }
     SELF->alloc = &MemPool_Alloc;
+    SELF->free = &MemPool_Free;
   }
   return retVal;
 }
@@ -158,5 +220,5 @@ Std_ReturnType MemPool_CheckAddressAndRangeContained(MemPool * mp, MEMPOOL_ADDR_
   DEBT_01 
   Assumes that the blocks can not be freed, so just moves to the next block. 
   When blocks can be freed, we should look for the first contiguous free spaces.
-  
+
 */
