@@ -52,7 +52,7 @@
 /* Reserve and allocate a contiguous memory space to the module */
 static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID)
 {
-  uint8* addr;
+  uint8* addr = NULL;
   uint8 numBlocksToReserve = 0;
   uint8 i;
   uint8 contiguousCount = 0;
@@ -160,16 +160,33 @@ static Std_ReturnType MemPool_Free(void * self, MEMPOOL_ADDR_TYPE addr, uint16 m
 /************************************************************
   GLOBAL FUNCTIONS
 ************************************************************/
+/**
+ * MemPool_Create()
+ * 
+ * Populates the mempool structure pointed to by 'self'. Given an address and size for the mempool by the caller.
+ * @param self: pointer to mempool structure that must be populated.
+ * @param addr: address where the mempool data will be stored. blocks come from this area.
+ * @param size: overall size of the memory pool.
+ * 
+ * @return Std_ReturnType: could be Std_ErrorType instead, E_OK for successful creation or E_NOT_OK for failure.
+ */
 Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SIZE_TYPE size)
 {
   Std_ReturnType retVal = E_OK;
   uint8 i; /*idx for iterating through block list */
 
-  if( (addr % MEMPOOL_BLOCK_SIZE != 0) || (size % MEMPOOL_BLOCK_SIZE != 0) || (size == 0) )
+  /* consider smarter testing of addr, i.e. legal address in RAM for this microcontroller/derivative. */
+  /* 
+    if self is NULL, we should assume that the derefernce may fail. 
+    if addr is not aligned to MEMPOOL_BLOCK_SIZE, or the size is not a multiple of MEMPOOL_BLOCK_SIZE, we should fail.
+    size of zero would not make sense for a mempool, so that should fail too.
+  */
+  if( (self == NULL) || (addr % MEMPOOL_BLOCK_SIZE != 0) || (size % MEMPOOL_BLOCK_SIZE != 0) || (size == 0) )
   {
     retVal = E_NOT_OK;
   }
 
+  /* if there are no errors in the parameters, we should*/
   if(E_OK == retVal)
   {
     SELF->poolStartAddr = addr;
@@ -178,10 +195,15 @@ Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SI
     SELF->numTotalBlocks = size/MEMPOOL_BLOCK_SIZE;
     SELF->numFreeBlocks = SELF->numTotalBlocks;
 
+    /* We should mark every block as "free" or assigned to the MEMPOOL to be overwritten. */
     for(i = 0; i < SELF->numTotalBlocks; i++)
     {
       SELF->blocks[i] = ((0x00 << 2) | MOD_ID_MEMPOOL);
     }
+
+    /* consider adding a possibility to clear/wipe the mempool. */
+
+    /* overwrite member function pointers (these may not ever change, could consider constant assignment)*/
     SELF->alloc = &MemPool_Alloc;
     SELF->free = &MemPool_Free;
   }

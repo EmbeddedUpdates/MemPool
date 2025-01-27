@@ -418,6 +418,7 @@ void test_MemPool_Aux_CanaryTest(void)
   *(uint32*)(mp.poolStartAddr+mp.poolSize) = 0xFACEBEEF;
   uint8 * addr0 = mp.alloc(&mp, MEMPOOL_SIZE, 0x0A);
   retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr0), 0x0A);
+  (void) retVal;
   TEST_ASSERT_EQUAL_INT32(0xFACEBEEF, *(uint32*)(mp.poolStartAddr+mp.poolSize));
 }
 
@@ -438,6 +439,15 @@ void test_MemPool_Aux_AllocAllFreeHalfAllocOne(void)
   uint8 * addr7 = mp.alloc(&mp, 0x300, 0x0C);
   uint8 * addr8 = mp.alloc(&mp, 0x20, 0x0D);
   retVal = mp.free(&mp, (MEMPOOL_ADDR_TYPE)(addr3), 0x0C);
+
+  (void) retVal;
+  (void) addr1;
+  (void) addr4;
+  (void) addr5;
+  (void) addr6;
+  (void) addr7;
+  (void) addr8; 
+
   testHelper_PrintShortArray(mp.blocks, 32);
   TEST_ASSERT_EQUAL_INT16(0x000D, mp.blocks[0]);
 }
