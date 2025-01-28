@@ -32,6 +32,8 @@
 #define MEMPOOL_SIZE ((uint64) (MEMPOOL_MAX_NUM_BLOCKS * MEMPOOL_BLOCK_SIZE))
 
 #define MOD_ID_MEMPOOL 0xF0
+/* offset into the blocks metadata structure for the number of consecutive blocks */
+#define MEMPOOL_BLOCKCOUNT_OFFSET 8
 
 /* A mempool is reserved for the RINGBUFFER, and is allocated through the linkerscript at compile time */
 #if defined( RP2040 )

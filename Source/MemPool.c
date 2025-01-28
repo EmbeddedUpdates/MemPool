@@ -102,12 +102,14 @@ static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID
           startOfContiguousBlocks = i - contiguousCount + 1;
           /* address will be assumed to be the next available block <----- this must change later */ /* DEBT_01 */
           addr = (uint8*)(SELF->poolStartAddr + (startOfContiguousBlocks*SELF->blockSize));
-          SELF->blocks[startOfContiguousBlocks] = (((numBlocksToReserve-1) << 8) | moduleID);
+          SELF->blocks[startOfContiguousBlocks] = (((numBlocksToReserve-1) << MEMPOOL_BLOCKCOUNT_OFFSET) | moduleID);
           for(i = 1; i < numBlocksToReserve; i++)
           {
-            SELF->blocks[startOfContiguousBlocks + i] = (((0x00) << 8) | moduleID);
+            SELF->blocks[startOfContiguousBlocks + i] = (((0x00) << MEMPOOL_BLOCKCOUNT_OFFSET) | moduleID);
           }
           SELF->numFreeBlocks = SELF->numFreeBlocks - numBlocksToReserve;
+
+          /* Intentional break instead of modifying for loop condition.  */
           break;
         }
       }
@@ -145,7 +147,7 @@ static Std_ReturnType MemPool_Free(void * self, MEMPOOL_ADDR_TYPE addr, uint16 m
       numBlocksToClear = ((SELF->blocks[blockIdx] & 0xFF00) >> 8) + 1;
       for(i = 0; i < numBlocksToClear; i++)
       {
-        SELF->blocks[blockIdx+i] = ((0x00 << 2) | MOD_ID_MEMPOOL);
+        SELF->blocks[blockIdx+i] = ((0x00 << 8) | MOD_ID_MEMPOOL);
         SELF->numFreeBlocks++;
       }
       retVal = E_OK;
@@ -198,7 +200,8 @@ Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SI
     /* We should mark every block as "free" or assigned to the MEMPOOL to be overwritten. */
     for(i = 0; i < SELF->numTotalBlocks; i++)
     {
-      SELF->blocks[i] = ((0x00 << 2) | MOD_ID_MEMPOOL);
+      /* Writing of zero bits here is not needed, but is present for clarity and readability.*/
+      SELF->blocks[i] = ((0x00 << MEMPOOL_BLOCKCOUNT_OFFSET) | MOD_ID_MEMPOOL);
     }
 
     /* consider adding a possibility to clear/wipe the mempool. */

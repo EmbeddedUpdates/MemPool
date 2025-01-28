@@ -452,3 +452,9 @@ void test_MemPool_Aux_AllocAllFreeHalfAllocOne(void)
   TEST_ASSERT_EQUAL_INT16(0x000D, mp.blocks[0]);
 }
 
+/* 
+  we need to implement some logic in the case that a user allocs 2 blocks, and then tries to free the second of those blocks. 
+  right now, it would free the second block, thinking that it is a solo block because 0x00AA is the identifier for the solo blocks assigned to AA as well.
+  We could iterate backwards from there to confirm the user request, i.e. until AA is not matching to the left, or if 0x0
+*/
+
