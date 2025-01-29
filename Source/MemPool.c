@@ -72,7 +72,7 @@ static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID
       We need to determine how many blocks we must allocate for this request.
     */
     numBlocksToReserve = size/SELF->blockSize;
-    if(size % SELF->blockSize != 0)
+    if( size % SELF->blockSize != 0 )
     {
       /* integer division will trigger truncation, so we must check for remainder and add one if necessary */
       numBlocksToReserve++; 
@@ -189,7 +189,7 @@ Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SI
   }
 
   /* if there are no errors in the parameters, we should*/
-  if(E_OK == retVal)
+  if( E_OK == retVal )
   {
     SELF->poolStartAddr = addr;
     SELF->poolSize = size;
