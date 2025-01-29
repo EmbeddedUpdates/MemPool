@@ -62,7 +62,7 @@ static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID
     immediate failure cases:
     SELF is null, requested size is 0, size requested is bigger than the pool is
   */
-  if((NULL == SELF) || (size == 0 || size > SELF->poolSize))
+  if((NULL == SELF) || (0 == size || SELF->poolSize < size ))
   {
     addr = NULL;
   }
@@ -89,7 +89,7 @@ static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID
       for(i = 0; i < SELF->numTotalBlocks; i++)
       {
         /* only free blocks count */
-        if(SELF->blocks[i] == 0x00F0)
+        if( 0x00F0 == SELF->blocks[i] )
         {
           contiguousCount++;
         }
@@ -183,7 +183,7 @@ Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SI
     if addr is not aligned to MEMPOOL_BLOCK_SIZE, or the size is not a multiple of MEMPOOL_BLOCK_SIZE, we should fail.
     size of zero would not make sense for a mempool, so that should fail too.
   */
-  if( (self == NULL) || (addr % MEMPOOL_BLOCK_SIZE != 0) || (size % MEMPOOL_BLOCK_SIZE != 0) || (size == 0) )
+  if( ( NULL == self ) || (0 != (addr % MEMPOOL_BLOCK_SIZE) ) || (0 != (size % MEMPOOL_BLOCK_SIZE)) || (0 == size) )
   {
     retVal = E_NOT_OK;
   }
