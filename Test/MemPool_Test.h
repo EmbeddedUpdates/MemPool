@@ -55,8 +55,8 @@ extern void test_MemPool_CheckRangeContained_StartInLengthHuge_OVERFLOW_NOTOK(vo
 
 /* create setup helper func */
 extern MemPool testHelper_MemPool_Create(void);
-extern void testHelper_PrintShortArray(uint16 * arr, uint8 numElements);
-extern void testHelper_PrintPointerArray(uint8** arr, uint8 numElements);
+extern void testHelper_PrintShortArray(int16 * arr, uint8 numElements);
+extern void testHelper_PrintPointerArray(int8** arr, uint8 numElements);
 
 /**
  * Allocate (Create Setup is needed)
@@ -90,5 +90,17 @@ extern void test_MemPool_Free_1BlockFreeAfterAllUsedAnd1Freed(void);
  */
 extern void test_MemPool_Aux_CanaryTest(void);
 extern void test_MemPool_Aux_AllocAllFreeHalfAllocOne(void);
+
+extern void test_MemPool_CreateFromInternal_ReturnsOK(void);
+extern void test_MemPool_CreateFromInternal_ReturnsNotOk_UnalignedStartAddress(void);
+extern void test_MemPool_CreateFromInternal_ReturnsNotOk_UnalignedSize(void);
+extern void test_MemPool_CreateFromInternal_ReturnsNotOk_ZeroSize(void);
+extern void test_MemPool_CreateFromInternal_Persists_AlignedSize(void);
+extern void test_MemPool_CreateFromInternal_Persists_AlignedAddress(void);
+extern void test_MemPool_CreateFromInternal_Persists_BlockCount(void);
+extern void test_MemPool_CreateFromInternal_FreeBlockCountIsCorrect(void);
+extern void test_MemPool_CreateFromInternal_BlockArrayIsAllFree(void);
+
+extern void test_MemPool_GetGlobalReturnsSame(void);
 
 #endif /* MEMPOOL_TEST_H */

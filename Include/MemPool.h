@@ -45,7 +45,7 @@
 #define MEMPOOL_SIZE_TYPE         uint64
 #define MEMPOOL_ADDR_TYPE         MEMPOOL_SIZE_TYPE
 #define MEMPOOL_STARTADDR ((uint64) mempool_start)
-extern uint8 * mempool_start;
+extern int8 * mempool_start;
 #endif
 
 /************************************************************
@@ -61,7 +61,7 @@ typedef struct MemPool_tag
   uint16 blocks[MEMPOOL_MAX_NUM_BLOCKS];
 
   /* Allocate some data from the Mempool, returns the address of that region */
-  uint8* (*alloc) (void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID);
+  int8* (*alloc) (void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID);
   Std_ReturnType (*free) (void * self, MEMPOOL_ADDR_TYPE addr, uint16 moduleID);
 } MemPool;
 
@@ -103,5 +103,9 @@ extern Std_ReturnType MemPool_CheckAddressAndRangeContained(MemPool * mp, MEMPOO
  * @return Std_ReturnType: could be Std_ErrorType instead, E_OK for successful creation or E_NOT_OK for failure.
  */
 extern Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SIZE_TYPE size);
+
+extern Std_ReturnType MemPool_GetGlobalMemPool( MemPool ** mp );
+extern void MemPool_ClearInternalMemPool( void );
+
 #endif /* MEMPOOL_H */
 

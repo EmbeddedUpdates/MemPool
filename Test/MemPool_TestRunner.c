@@ -45,7 +45,7 @@ int main(void)
 {
   UnityBegin("test/MemPool.c");
 
-  uint8 * mempool = aligned_alloc(MEMPOOL_BLOCK_SIZE, MEMPOOL_SIZE);
+  int8 * mempool = aligned_alloc(MEMPOOL_BLOCK_SIZE, MEMPOOL_SIZE);
   mempool_start = mempool;
   printf("Address of mempool: %p\n", (void*)MEMPOOL_STARTADDR);
   printf("Length of mempool: %p\n", (void*)(MEMPOOL_BLOCK_SIZE*MEMPOOL_MAX_NUM_BLOCKS));
@@ -92,6 +92,8 @@ int main(void)
   /* Auxiliary tests */
   RUN_TEST(test_MemPool_Aux_CanaryTest, 93);
   RUN_TEST(test_MemPool_Aux_AllocAllFreeHalfAllocOne, 94);
+
+  RUN_TEST(test_MemPool_GetGlobalReturnsSame, 97);
 
   return (UnityEnd());
 }

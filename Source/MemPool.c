@@ -32,10 +32,13 @@
 /************************************************************
   ENUMS AND TYPEDEFS
 ************************************************************/
-
+#define MAX_NUM_MEMPOOLS 1
 /************************************************************
   LOCAL VARIABLES
 ************************************************************/
+MemPool memPools[MAX_NUM_MEMPOOLS] = {0};
+uint8 memPoolsIdx = 0xFF;
+
 
 /************************************************************
   LOCAL FUNCTIONS
@@ -50,9 +53,9 @@
  * @return pointer to the first byte of the me mory space requested, if allocation fails->NULL
  */
 /* Reserve and allocate a contiguous memory space to the module */
-static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID)
+static int8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID)
 {
-  uint8* addr = NULL;
+  int8* addr = NULL;
   uint8 numBlocksToReserve = 0;
   uint8 i;
   uint8 contiguousCount = 0;
@@ -101,7 +104,7 @@ static uint8* MemPool_Alloc(void * self, MEMPOOL_SIZE_TYPE size, uint16 moduleID
         {
           startOfContiguousBlocks = i - contiguousCount + 1;
           /* address will be assumed to be the next available block <----- this must change later */ /* DEBT_01 */
-          addr = (uint8*)(SELF->poolStartAddr + (startOfContiguousBlocks*SELF->blockSize));
+          addr = (int8*)(SELF->poolStartAddr + (startOfContiguousBlocks*SELF->blockSize));
           SELF->blocks[startOfContiguousBlocks] = (((numBlocksToReserve-1) << MEMPOOL_BLOCKCOUNT_OFFSET) | moduleID);
           for( i = 1; i < numBlocksToReserve; i++ )
           {
@@ -198,7 +201,7 @@ Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SI
     SELF->numFreeBlocks = SELF->numTotalBlocks;
 
     /* We should mark every block as "free" or assigned to the MEMPOOL to be overwritten. */
-    for(  = 0; i < SELF->numTotalBlocks; i++ )
+    for( i = 0; i < SELF->numTotalBlocks; i++ )
     {
       /* Writing of zero bits here is not needed, but is present for clarity and readability.*/
       SELF->blocks[i] = ((0x00 << MEMPOOL_BLOCKCOUNT_OFFSET) | MOD_ID_MEMPOOL);
@@ -212,7 +215,6 @@ Std_ReturnType MemPool_Create(MemPool * self, MEMPOOL_ADDR_TYPE addr, MEMPOOL_SI
   }
   return retVal;
 }
-
 
 /**
  * MemPool_CheckAddressAndRangeContained
@@ -244,6 +246,29 @@ Std_ReturnType MemPool_CheckAddressAndRangeContained(MemPool * mp, MEMPOOL_ADDR_
   }
 
   return retVal;
+}
+
+Std_ReturnType MemPool_GetGlobalMemPool( MemPool ** mp )
+{
+  Std_ReturnType retVal = E_NOT_OK;
+  if(0xFF == memPoolsIdx)
+  {
+    retVal = MemPool_Create(&memPools[0], MEMPOOL_STARTADDR, MEMPOOL_SIZE);
+    memPoolsIdx = 0;
+  }
+
+  *mp =  &memPools[memPoolsIdx];
+  return retVal;
+}
+
+void MemPool_ClearInternalMemPool( void )
+{
+  memPools[0].poolStartAddr = 0;
+  memPools[0].poolSize = 0;
+  memPools[0].blockSize = 0;
+  memPools[0].numTotalBlocks = 0;
+  memPools[0].numFreeBlocks = 0;
+  memPoolsIdx = 0xFF;
 }
 
 
